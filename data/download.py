@@ -44,9 +44,22 @@ class DataDownloader:
                 ticker_data = yf.download(ticker, start=self.start_date, end=self.end_date, progress=False)
                 
                 if not ticker_data.empty:
+                    # Handle new yfinance column format
+                    if isinstance(ticker_data.columns, pd.MultiIndex):
+                        # New format: columns are tuples
+                        close_col = ('Close', ticker)
+                        adj_close_col = ('Adj Close', ticker) if ('Adj Close', ticker) in ticker_data.columns else close_col
+                    else:
+                        # Old format: simple column names
+                        close_col = 'Close'
+                        adj_close_col = 'Adj Close' if 'Adj Close' in ticker_data.columns else 'Close'
+                    
+                    # Use available close price column
+                    price_col = adj_close_col if adj_close_col in ticker_data.columns else close_col
+                    
                     # Calculate returns
-                    ticker_data['Returns'] = ticker_data['Adj Close'].pct_change()
-                    ticker_data['Log_Returns'] = np.log(ticker_data['Adj Close'] / ticker_data['Adj Close'].shift(1))
+                    ticker_data['Returns'] = ticker_data[price_col].pct_change()
+                    ticker_data['Log_Returns'] = np.log(ticker_data[price_col] / ticker_data[price_col].shift(1))
                     
                     # Calculate volatility (rolling 20-day)
                     ticker_data['Volatility'] = ticker_data['Returns'].rolling(20).std()
@@ -75,21 +88,29 @@ class DataDownloader:
             # Create fundamental proxies based on price data
             fundamental = pd.DataFrame(index=data.index)
             
+            # Handle new yfinance column format for price data
+            if isinstance(data.columns, pd.MultiIndex):
+                price_col = ('Close', ticker) if ('Close', ticker) in data.columns else ('Adj Close', ticker)
+                volume_col = ('Volume', ticker) if ('Volume', ticker) in data.columns else None
+            else:
+                price_col = 'Adj Close' if 'Adj Close' in data.columns else 'Close'
+                volume_col = 'Volume' if 'Volume' in data.columns else None
+            
             # Price-based ratios
-            fundamental['Price_Ratio'] = data['Adj Close'] / data['Adj Close'].rolling(252).mean()
-            fundamental['Price_Momentum'] = data['Adj Close'] / data['Adj Close'].shift(20) - 1
+            fundamental['Price_Ratio'] = data[price_col] / data[price_col].rolling(252).mean()
+            fundamental['Price_Momentum'] = data[price_col] / data[price_col].shift(20) - 1
             
             # Volume-based metrics
-            if 'Volume' in data.columns:
-                fundamental['Volume_Ratio'] = data['Volume'] / data['Volume'].rolling(20).mean()
-                fundamental['Volume_Momentum'] = data['Volume'] / data['Volume'].shift(5) - 1
+            if volume_col and volume_col in data.columns:
+                fundamental['Volume_Ratio'] = data[volume_col] / data[volume_col].rolling(20).mean()
+                fundamental['Volume_Momentum'] = data[volume_col] / data[volume_col].shift(5) - 1
             
             # Volatility-based metrics
             fundamental['Volatility_Ratio'] = data['Volatility'] / data['Volatility'].rolling(252).mean()
             fundamental['Volatility_Momentum'] = data['Volatility'] / data['Volatility'].shift(20) - 1
             
             # Size proxy (using price as proxy for market cap)
-            fundamental['Size_Proxy'] = np.log(data['Adj Close'])
+            fundamental['Size_Proxy'] = np.log(data[price_col])
             
             # Quality proxy (using volatility as inverse quality measure)
             fundamental['Quality_Proxy'] = 1 / (1 + data['Volatility'])

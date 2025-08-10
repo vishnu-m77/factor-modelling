@@ -37,9 +37,15 @@ class LinearFactorCalculator:
                 
             factors = pd.DataFrame(index=price_data.index)
             
+            # Handle new yfinance column format
+            if isinstance(price_data.columns, pd.MultiIndex):
+                price_col = ('Close', ticker) if ('Close', ticker) in price_data.columns else ('Adj Close', ticker)
+            else:
+                price_col = 'Adj Close' if 'Adj Close' in price_data.columns else 'Close'
+            
             # Price momentum (various lookback periods)
             for period in [5, 20, 60, 252]:
-                factors[f'Momentum_{period}d'] = price_data['Adj Close'].pct_change(period)
+                factors[f'Momentum_{period}d'] = price_data[price_col].pct_change(period)
             
             # Return momentum
             factors['Return_Momentum_5d'] = price_data['Returns'].rolling(5).mean()
@@ -176,16 +182,25 @@ class LinearFactorCalculator:
                 
             factors = pd.DataFrame(index=price_data.index)
             
+            # Handle new yfinance column format
+            if isinstance(price_data.columns, pd.MultiIndex):
+                volume_col = ('Volume', ticker) if ('Volume', ticker) in price_data.columns else None
+            else:
+                volume_col = 'Volume' if 'Volume' in price_data.columns else None
+            
             # Volume-based liquidity
-            if 'Volume' in price_data.columns:
-                factors['Volume_Liquidity'] = price_data['Volume']
-                factors['Volume_Liquidity_Rank'] = price_data['Volume'].rolling(252).rank(pct=True)
+            if volume_col and volume_col in price_data.columns:
+                factors['Volume_Liquidity'] = price_data[volume_col]
+                factors['Volume_Liquidity_Rank'] = price_data[volume_col].rolling(252).rank(pct=True)
                 
                 # Volume momentum
-                factors['Volume_Momentum'] = price_data['Volume'].pct_change(20)
-            
-            # Price impact (inverse of liquidity)
-            factors['Price_Impact'] = price_data['Returns'].abs() / (price_data['Volume'] + 1e-8)
+                factors['Volume_Momentum'] = price_data[volume_col].pct_change(20)
+                
+                # Price impact (inverse of liquidity)
+                factors['Price_Impact'] = price_data['Returns'].abs() / (price_data[volume_col] + 1e-8)
+            else:
+                # If no volume data, create proxy liquidity factors
+                factors['Price_Impact'] = price_data['Returns'].abs() * 1000  # Proxy for liquidity
             
             liquidity_factors[ticker] = factors
         
