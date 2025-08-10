@@ -49,7 +49,7 @@ This repository contains a modular Python pipeline to research and evaluate the 
 
 ```bash
 # Clone the repository
-git clone [<repository-url>](https://github.com/vishnu-m77/factor-modelling)
+git clone https://github.com/vishnu-m77/factor-modelling
 cd factor-modelling
 
 # Create virtual environment
