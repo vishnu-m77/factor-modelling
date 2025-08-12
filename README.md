@@ -49,7 +49,7 @@ This repository contains a modular Python pipeline to research and evaluate the 
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/vishnu-m77/factor-modelling
 cd factor-modelling
 
 # Create virtual environment
@@ -162,12 +162,3 @@ Key parameters can be modified in the respective modules:
 4. Update documentation
 5. Submit a pull request
 
----
-
-## License
-
-This project is for research purposes. Please ensure compliance with data usage terms and trading regulations.
-
----
-
-**Note**: This is a research framework. Results should be validated and backtested before any real trading applications.
