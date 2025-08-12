@@ -87,6 +87,22 @@ python main_pipeline.py
 - Performance metrics calculation
 - Risk management and position sizing
 
+## Output Files
+
+The pipeline generates comprehensive output files:
+
+### Core Results
+- ic_results_[timestamp].csv: Basic IC analysis results
+- top_factors_[timestamp].csv: Selected top factors
+- portfolio_results_[timestamp].json: Portfolio simulation results
+- all_factors_[timestamp].csv: Complete factor dataset
+- complete_results_[timestamp].pkl: Pickled complete results
+
+### IC Analysis
+- enhanced_ic_results_[timestamp].csv: Detailed IC statistics with t-stats, hit rates, and IR
+- ic_decay_analysis_[timestamp].csv: IC decay patterns across forward periods
+- enhanced_factor_report_[timestamp].json: Comprehensive factor evaluation report
+
 ---
 
 ## Usage Examples
@@ -123,7 +139,7 @@ Key parameters can be modified in the respective modules:
 - Factor calculation parameters
 - Model hyperparameters
 - Portfolio constraints
-
+- IC Screening Parameters
 ---
 
 ## Dependencies

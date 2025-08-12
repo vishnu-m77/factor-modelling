@@ -54,8 +54,34 @@ def main():
         print("\n4. Evaluating factors with IC analysis...")
         ic_evaluator = FactorICEvaluator(all_factors, price_data)
         ic_results = ic_evaluator.evaluate_all_factors()
-        top_factors = ic_evaluator.get_top_factors()
+        
+        # Enhanced IC screening with multiple criteria
+        top_factors = ic_evaluator.get_top_factors(
+            n_top=20, 
+            min_ic_threshold=0.005,  # More lenient IC threshold
+            min_t_stat=1.0,          # Minimum t-statistic
+            min_hit_rate=0.45        # Minimum hit rate
+        )
+        
+        # Save enhanced IC analysis
+        ic_evaluator.save_ic_analysis()
+        
         logger.info(f"Top factors identified: {len(top_factors)}")
+        
+        # Generate and display enhanced report
+        if len(top_factors) > 0:
+            enhanced_report = ic_evaluator.generate_enhanced_report()
+            print(f"\nEnhanced Factor Analysis:")
+            print(f"  Total factors analyzed: {enhanced_report['summary']['total_factors']}")
+            print(f"  Mean IC: {enhanced_report['ic_statistics']['mean_ic']:.4f}")
+            print(f"  IC std: {enhanced_report['ic_statistics']['std_ic']:.4f}")
+            print(f"  Quality distribution:")
+            for grade, count in enhanced_report['quality_distribution'].items():
+                if count > 0:
+                    print(f"    {grade.capitalize()}: {count} factors")
+        else:
+            print("\nNo factors met the enhanced screening criteria.")
+            print("Consider relaxing thresholds or improving factor quality.")
         
         # Step 6: Simulate portfolio
         print("\n5. Simulating portfolio...")

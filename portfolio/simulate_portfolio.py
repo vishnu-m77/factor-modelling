@@ -125,7 +125,7 @@ class PortfolioSimulator:
         # Get common dates
         common_dates = self.factors.index
         if not common_dates.empty:
-            common_dates = common_dates.sort_index()
+            common_dates = common_dates.sort_values()
         
         # Initialize tracking variables
         portfolio_values = [1.0]  # Start with $1
