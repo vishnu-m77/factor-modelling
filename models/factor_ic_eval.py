@@ -55,6 +55,31 @@ class FactorICEvaluator:
         if len(aligned_data) < 50:  # Need sufficient data
             return np.nan
         
+        # Enhanced validation: Check for extreme values
+        factor_col = aligned_data.iloc[:, 0]
+        returns_col = aligned_data.iloc[:, 1]
+        
+        # Check for infinite values
+        if np.any(np.isinf(factor_col)) or np.any(np.isinf(returns_col)):
+            print(f"    Warning: Infinite values detected in factor or returns")
+            return np.nan
+        
+        # Check for extreme factor values (beyond ±10)
+        extreme_factor_mask = np.abs(factor_col) > 10
+        if np.any(extreme_factor_mask):
+            print(f"    Warning: {np.sum(extreme_factor_mask)} extreme factor values detected")
+            # Clip extreme values for IC calculation
+            factor_col = factor_col.clip(-10, 10)
+            aligned_data.iloc[:, 0] = factor_col
+        
+        # Check for extreme return values (beyond ±1, which would be 100% daily return)
+        extreme_return_mask = np.abs(returns_col) > 1
+        if np.any(extreme_return_mask):
+            print(f"    Warning: {np.sum(extreme_return_mask)} extreme return values detected")
+            # Clip extreme returns for IC calculation
+            returns_col = returns_col.clip(-1, 1)
+            aligned_data.iloc[:, 1] = returns_col
+        
         # Calculate correlation
         correlation = aligned_data.iloc[:, 0].corr(aligned_data.iloc[:, 1])
         return correlation

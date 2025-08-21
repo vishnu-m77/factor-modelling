@@ -85,7 +85,8 @@ def main():
         
         # Step 6: Simulate portfolio
         print("\n5. Simulating portfolio...")
-        portfolio_sim = PortfolioSimulator(top_factors, price_data)
+        # Use the actual factor values, not the IC statistics
+        portfolio_sim = PortfolioSimulator(all_factors, price_data)
         portfolio_results = portfolio_sim.simulate()
         logger.info("Portfolio simulation completed")
         
