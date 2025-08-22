@@ -11,6 +11,7 @@ This repository contains a modular Python pipeline to research and evaluate the 
 - Measure factor effectiveness using forward Information Coefficient (IC)
 - Simulate basic long-short strategies using top-ranked alpha signals
 - Modularize the codebase for easy extension with new models, features, and datasets
+- **NEW**: Prevent overfitting through comprehensive cross-validation and out-of-sample testing
 
 ---
 
@@ -23,23 +24,29 @@ This repository contains a modular Python pipeline to research and evaluate the 
 │
 ├── factors/
 │   ├── linear_factors.py        # Classic alpha factors (e.g., value, quality, momentum)
-│   └── nonlinear_factors.py     # ML-based features (e.g., autoencoders, nonlinear PCA)
+│   ├── nonlinear_factors.py     # ML-based features (e.g., autoencoders, nonlinear PCA)
+│   └── enhanced_factor_processing.py  # Advanced factor processing with robust normalization
 │
 ├── models/
 │   ├── encoder_models.py        # Autoencoder and nonlinear dimensionality models
-│   └── factor_ic_eval.py        # Factor ranking and forward IC analysis
+│   ├── factor_ic_eval.py        # Factor ranking and forward IC analysis
+│   ├── factor_quality_control.py # Advanced factor quality control and validation
+│   ├── cross_validation.py      # Time series CV, walk-forward analysis, out-of-sample testing
+│   └── validation_functions.py  # Validation functions for cross-validation framework
 │
 ├── portfolio/
 │   └── simulate_portfolio.py    # Construct long-short portfolios from top factors
 │
 ├── utils/
-│   └── helpers.py               # Utilities for returns, plotting, evaluation, etc.
+│   └── helpers.py               # Utilities for data handling, results saving, and reporting
 │
 ├── config.py                    # Configuration parameters and settings
 ├── requirements.txt             # Python dependencies and versions
 ├── main_pipeline.py             # End-to-end script: from data to factor IC results
 ├── results/                     # Output directory for analysis results and plots
 ├── cache/                       # Data caching directory for downloaded financial data
+├── logs/                        # Pipeline execution logs
+├── existing_scripts/            # Reference implementations and research notes
 └── README.md
 ```
 
@@ -71,37 +78,71 @@ python main_pipeline.py
 - Downloads free financial data using yfinance
 - Preprocesses price and fundamental data
 - Implements caching to avoid redundant downloads
+- Handles missing data with robust imputation strategies
+
+### Advanced Factor Processing
+- **Robust Normalization**: IQR-based outlier handling with rolling z-score normalization
+- **Multi-Strategy Imputation**: Forward/backward fill, median, and zero-fill strategies
+- **Ensemble Factor Creation**: PCA and ICA factors for enhanced diversification
+- **Quality-Based Selection**: IC-based factor selection with correlation filtering
+
+### Advanced Quality Control
+- **Multi-criteria Factor Validation**: Comprehensive factor quality assessment using IC, data quality, stability, and outlier detection
+- **Outlier Detection**: Isolation Forest-based outlier identification for robust factor analysis
+- **Stability Analysis**: Rolling volatility-based factor stability scoring
+- **Quality Scoring**: Weighted quality scores combining IC performance, data quality, stability, and outlier ratios
+- **Automated Filtering**: Intelligent factor selection based on configurable quality thresholds
 
 ### Factor Calculation
-- **Linear Factors**: Value, quality, momentum, size, volatility
-- **Nonlinear Factors**: Autoencoder-based features, nonlinear PCA
-- Factor normalization and outlier detection
+- **Linear Factors**: Value, quality, momentum, size, volatility, liquidity (156 total factors)
+- **Nonlinear Factors**: Autoencoder-based features, nonlinear PCA, ensemble combinations
+- **Enhanced Processing**: Robust normalization, outlier detection, and quality filtering
 
 ### Factor Evaluation
-- Forward Information Coefficient (IC) analysis
-- Factor ranking and selection
-- Correlation analysis and filtering
+- Forward Information Coefficient (IC) analysis across multiple time horizons
+- Factor ranking and selection with enhanced screening criteria
+- Correlation analysis and filtering to reduce redundancy
+- Multi-criteria factor validation including outlier detection, stability analysis, and comprehensive quality scoring
+
+### Cross-Validation & Out-of-Sample Testing
+- **Time Series Cross-Validation**: Prevents overfitting with temporal data splitting
+- **Walk-Forward Analysis**: Rolling window validation for realistic testing
+- **Out-of-Sample Testing**: Temporal data splits to ensure generalization
+- **Factor Stability Analysis**: Rolling window IC analysis for consistency assessment
+- **Overfitting Detection**: Comprehensive analysis of train/test performance degradation
 
 ### Portfolio Simulation
-- Long-short portfolio construction
-- Performance metrics calculation
+- Long-short portfolio construction with realistic constraints
+- Performance metrics calculation (Sharpe ratio, drawdown, win rate, VaR)
 - Risk management and position sizing
+- Transaction cost modeling
 
 ## Output Files
 
 The pipeline generates comprehensive output files:
 
 ### Core Results
-- ic_results_[timestamp].csv: Basic IC analysis results
-- top_factors_[timestamp].csv: Selected top factors
-- portfolio_results_[timestamp].json: Portfolio simulation results
-- all_factors_[timestamp].csv: Complete factor dataset
-- complete_results_[timestamp].pkl: Pickled complete results
+- `ic_results_[timestamp].csv`: Basic IC analysis results
+- `top_factors_[timestamp].csv`: Selected top factors
+- `portfolio_results_[timestamp].json`: Portfolio simulation results
+- `all_factors_[timestamp].csv`: Complete factor dataset
+- `complete_results_[timestamp].pkl`: Pickled complete results containing ALL data
+
+### Cross-Validation Results
+- **Cross-validation results**: Stored within the pickled file
+- **Walk-forward analysis**: Stored within the pickled file  
+- **Out-of-sample testing**: Stored within the pickled file
+- **Factor stability analysis**: Stored within the pickled file
+
+### Quality Control Results
+- **Quality control results**: Stored within the pickled file
+- **Quality reports**: Stored within the pickled file
+- **Processing results**: Stored within the pickled file
 
 ### IC Analysis
-- enhanced_ic_results_[timestamp].csv: Detailed IC statistics with t-stats, hit rates, and IR
-- ic_decay_analysis_[timestamp].csv: IC decay patterns across forward periods
-- enhanced_factor_report_[timestamp].json: Comprehensive factor evaluation report
+- `enhanced_ic_results_[timestamp].csv`: Detailed IC statistics with t-stats, hit rates, and IR
+- `ic_decay_analysis_[timestamp].csv`: IC decay patterns across forward periods
+- `enhanced_factor_report_[timestamp].json`: Comprehensive factor evaluation report
 
 ---
 
@@ -128,6 +169,12 @@ python models/factor_ic_eval.py
 
 # Simulate portfolio
 python portfolio/simulate_portfolio.py
+
+# Run cross-validation
+python models/cross_validation.py
+
+# Run quality control
+python models/factor_quality_control.py
 ```
 
 ---
@@ -140,6 +187,9 @@ Key parameters can be modified in the respective modules:
 - Model hyperparameters
 - Portfolio constraints
 - IC Screening Parameters
+- Cross-validation parameters (folds, window sizes, test ratios)
+- Quality control thresholds (IC, stability, outlier detection)
+
 ---
 
 ## Dependencies
@@ -150,7 +200,8 @@ Key parameters can be modified in the respective modules:
 - matplotlib
 - seaborn
 - yfinance
-- torch (for autoencoder models)
+- torch
+- scikit-learn
 
 ---
 
